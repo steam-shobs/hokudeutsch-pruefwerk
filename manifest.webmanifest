@@ -1,0 +1,9 @@
+{
+  "name": "Prüfwerk — HokuDeutsch",
+  "short_name": "Prüfwerk",
+  "start_url": "./index.html#home",
+  "display": "standalone",
+  "background_color": "#f7f4ed",
+  "theme_color": "#173b31",
+  "description": "北大ドイツ語の授業・試験対策アプリ"
+}
