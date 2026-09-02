@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173b31">
+  <meta name="description" content="北海道大学のドイツ語授業・定期試験に向けた、選択式と記述式の文法・語彙学習アプリ。">
+  <meta property="og:title" content="Prüfwerk — HokuDeutsch">
+  <meta property="og:description" content="Lektion 7〜12の6形式720問以上・80不規則動詞・16分野語彙・模擬試験を一括で学ぶ。">
+  <title>Prüfwerk — HokuDeutsch</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=20260902-3">
+</head>
+<body>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="メインナビゲーション">
+      <a class="brand" href="#home" aria-label="Prüfwerk ホーム">
+        <span class="brand-mark">P</span>
+        <span><strong>Prüfwerk</strong><small>HokuDeutsch</small></span>
+      </a>
+      <nav id="side-nav" class="side-nav">
+        <a href="#home" data-route="home"><span>⌂</span>ホーム</a>
+        <a href="#learn" data-route="learn"><span>▤</span>文法レッスン</a>
+        <a href="#practice" data-route="practice"><span>✎</span>答案トレーニング</a>
+        <a href="#verbs" data-route="verbs"><span>⌁</span>動詞マトリクス</a>
+        <a href="#vocab" data-route="vocab"><span>Aa</span>指定語彙</a>
+        <a href="#exam" data-route="exam"><span>◷</span>模擬試験</a>
+        <a href="#progress" data-route="progress"><span>↗</span>学習記録</a>
+      </nav>
+      <div class="sidebar-note">
+        <span class="eyebrow">今日の目安</span>
+        <strong>25分・12問</strong>
+        <div class="mini-progress"><i id="sidebar-progress"></i></div>
+        <small id="sidebar-label">0 / 12 問</small>
+      </div>
+    </aside>
+
+    <header class="mobile-header">
+      <a class="brand" href="#home"><span class="brand-mark">P</span><strong>Prüfwerk</strong></a>
+      <button id="quick-start" class="icon-button" type="button" aria-label="今日の演習を始める">→</button>
+    </header>
+
+    <main id="main" tabindex="-1"></main>
+
+    <nav class="bottom-nav" aria-label="モバイルナビゲーション">
+      <a href="#home" data-route="home"><span>⌂</span>ホーム</a>
+      <a href="#learn" data-route="learn"><span>▤</span>文法</a>
+      <a href="#practice" data-route="practice"><span>✎</span>演習</a>
+      <a href="#exam" data-route="exam"><span>◷</span>試験</a>
+      <a href="#progress" data-route="progress"><span>↗</span>記録</a>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="expanded-questions.js?v=20260902-3"></script>
+  <script src="app.js?v=20260902-3"></script>
+</body>
+</html>
