@@ -1,5 +1,5 @@
-const CACHE = "pruefwerk-v6";
-const ASSETS = ["./", "./index.html", "./styles.css?v=20260910-5", "./expanded-questions.js?v=20260910-5", "./app.js?v=20260910-5", "./manifest.webmanifest", "./assets/favicon-64.png", "./assets/apple-touch-icon.png", "./assets/icon-192.png", "./assets/icon-512.png"];
+const CACHE = "pruefwerk-v7";
+const ASSETS = ["./", "./index.html", "./styles.css?v=20260910-5", "./expanded-questions.js?v=20260910-5", "./app.js?v=20260910-5", "./manifest.webmanifest", "./assets/favicon-64.png?v=20260910-6", "./assets/apple-touch-icon.png?v=20260910-6", "./assets/icon-192.png?v=20260910-6", "./assets/icon-512.png?v=20260910-6"];
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", event => {
