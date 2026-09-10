@@ -183,6 +183,11 @@ main { min-height: 100vh; margin-left: 248px; padding: 42px clamp(28px, 5vw, 76p
 .feedback.wrong { color: #703127; background: #fff0ec; }
 .feedback strong { display: block; margin-bottom: 6px; }
 .feedback code { display: block; margin-top: 8px; white-space: normal; color: var(--ink); font: 700 15px/1.5 var(--serif); }
+.feedback.self-check p { margin: 14px 0 8px; color: var(--muted); font-size: 13px; }
+.self-grade-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.self-grade-actions .button { min-width: 92px; }
+.selected-grade { outline: 3px solid rgba(23,59,49,.24); outline-offset: 2px; }
+.self-grade-result { margin: -4px -4px 14px; padding: 9px 11px; border-radius: 9px; color: var(--forest); background: rgba(255,255,255,.7); font-weight: 800; }
 .practice-side { position: sticky; top: 30px; display: grid; gap: 14px; }
 .side-card { padding: 20px; }
 .side-card h3 { margin: 0 0 12px; font: 700 19px/1.2 var(--serif); }
@@ -234,6 +239,13 @@ main { min-height: 100vh; margin-left: 248px; padding: 42px clamp(28px, 5vw, 76p
 .timer { font: 700 24px/1 var(--serif); font-variant-numeric: tabular-nums; }
 .exam-question { padding: 24px; margin-bottom: 12px; }
 .exam-question h3 { margin: 0 0 8px; font: 700 19px/1.3 var(--serif); }
+.self-review-note { margin-bottom: 14px; padding: 16px 20px; color: var(--muted); }
+.review-source { padding: 14px; border-radius: 12px; background: var(--paper-2); font-weight: 700; }
+.answer-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.answer-compare > div { padding: 15px; border: 1px solid var(--border); border-radius: 12px; }
+.answer-compare small { color: var(--muted); font-weight: 800; }
+.answer-compare p { margin-bottom: 0; white-space: pre-wrap; }
+.self-review-submit { bottom: 12px; top: auto; margin-top: 18px; }
 .exam-result { padding: 30px; }
 .score-ring { width: 150px; height: 150px; display: grid; place-items: center; margin: 10px auto 22px; border-radius: 50%; background: conic-gradient(var(--lime-deep) var(--score), var(--paper-2) 0); }
 .score-ring::before { content: ""; position: absolute; width: 116px; height: 116px; border-radius: 50%; background: var(--white); }
@@ -288,6 +300,8 @@ main { min-height: 100vh; margin-left: 248px; padding: 42px clamp(28px, 5vw, 76p
   .question-main { padding: 24px; }
   .question-actions { flex-direction: column-reverse; }
   .question-actions .button { width: 100%; }
+  .self-grade-actions, .answer-compare { grid-template-columns: 1fr; }
+  .self-grade-actions { display: grid; }
   .filters { padding: 12px; }
   .field { width: 100%; }
   .toast { right: 16px; bottom: 92px; left: 16px; max-width: none; }
