@@ -1,5 +1,5 @@
-const CACHE = "pruefwerk-v4";
-const ASSETS = ["./", "./index.html", "./styles.css?v=20260902-3", "./expanded-questions.js?v=20260902-3", "./app.js?v=20260902-3", "./manifest.webmanifest"];
+const CACHE = "pruefwerk-v5";
+const ASSETS = ["./", "./index.html", "./styles.css?v=20260910-4", "./expanded-questions.js?v=20260910-4", "./app.js?v=20260910-4", "./manifest.webmanifest"];
 self.addEventListener("install", event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener("activate", event => event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim())));
 self.addEventListener("fetch", event => {
