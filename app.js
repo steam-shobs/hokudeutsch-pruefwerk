@@ -300,6 +300,7 @@ function touchDay() {
 function esc(value = "") { return String(value).replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch])); }
 function normalize(value = "") { return value.toLowerCase().normalize("NFC").replace(/ß/g,"ss").replace(/[„“”"'’.,!?;:()—–-]/g," ").replace(/\s+/g," ").trim(); }
 function isCorrect(question, value) { return question.answers.some(answer => normalize(answer) === normalize(value)); }
+function isTranslationQuestion(question) { return question.mode === "translate" || question.mode === "de2jp"; }
 function route() { return (location.hash.slice(1).split("/")[0] || "home"); }
 function routeArg() { return location.hash.slice(1).split("/")[1] || ""; }
 function go(hash) { location.hash = hash; }
@@ -395,7 +396,7 @@ function renderPractice() {
   return `<div class="page">${pageHeader("練習問題", "答案トレーニング", "各Lektionに6形式を20問以上収録しています。")}
     <div class="filters card"><div class="field"><label>単元</label><select id="practice-unit">${["all",...units.map(u=>u.id),"foundation"].map(id=>`<option value="${id}" ${practice.unit===id?"selected":""}>${id==="all"?"全範囲":id==="foundation"?"前期補修":units.find(u=>u.id===id).title}</option>`).join("")}</select></div><div class="field"><label>出題形式</label><select id="practice-mode">${[["all","すべて"],["choice","選択式"],["fill","穴埋め"],["transform","文変換"],["order","語順"],["translate","和文独訳"],["de2jp","独文和訳"]].map(([id,label])=>`<option value="${id}" ${practice.mode===id?"selected":""}>${label}</option>`).join("")}</select></div><div class="field grow"><label>${practice.reviewOnly?"復習キュー":"進行"}</label><div class="progress-track" style="margin-top:17px"><i style="width:${(practice.index+1)/practice.pool.length*100}%"></i></div></div></div>
     <div class="practice-layout">
-      <article class="card question-card"><div class="question-top"><small>${unit.number==="F"?"前期補修":`Lektion ${unit.number}`} · ${unit.title}</small><small>${practice.index+1} / ${practice.pool.length}</small></div><div class="question-main"><span class="eyebrow">${modeLabel(q.mode)} · ${q.tag}</span><h2>${q.prompt}</h2><p class="prompt-note">${q.mode==="choice"?"1つ選んで採点してください。":"模範解答と照合して採点します。"}</p><div class="source-sentence" lang="${q.mode==="translate"?"ja":"de"}">${esc(q.source)}</div>${answerControl}<div id="practice-feedback"></div><div class="question-actions"><button class="button ghost" id="show-hint">ヒントを見る</button><button class="button lime" id="check-answer">採点する →</button></div></div></article>
+      <article class="card question-card"><div class="question-top"><small>${unit.number==="F"?"前期補修":`Lektion ${unit.number}`} · ${unit.title}</small><small>${practice.index+1} / ${practice.pool.length}</small></div><div class="question-main"><span class="eyebrow">${modeLabel(q.mode)} · ${q.tag}</span><h2>${q.prompt}</h2><p class="prompt-note">${q.mode==="choice"?"1つ選んで採点してください。":isTranslationQuestion(q)?"入力後に模範解答を表示し、自分で採点します。":"模範解答と照合して採点します。"}</p><div class="source-sentence" lang="${q.mode==="translate"?"ja":"de"}">${esc(q.source)}</div>${answerControl}<div id="practice-feedback"></div><div class="question-actions"><button class="button ghost" id="show-hint">ヒントを見る</button><button class="button lime" id="check-answer">${isTranslationQuestion(q)?"模範解答を見る":"採点する →"}</button></div></div></article>
       <aside class="practice-side"><div class="card side-card"><span class="eyebrow">出題形式</span><h3>問題を選ぶ</h3><div class="mode-list">${[["all","すべて混ぜる"],["choice","選択式"],["fill","穴埋め"],["transform","文変換"],["order","語順"],["translate","和文独訳"],["de2jp","独文和訳"]].map(([id,label])=>`<button data-set-mode="${id}" class="${practice.mode===id?"active":""}">${label}</button>`).join("")}</div></div><div class="card side-card"><span class="eyebrow">復習</span><h3>復習キュー</h3><p class="tiny">誤答は自動でここに追加されます。</p><strong>${progress.review.length} 問</strong>${progress.review.length?`<button class="button ghost mt" id="review-only">復習だけ解く</button>`:""}</div></aside>
     </div>
   </div>`;
@@ -473,15 +474,26 @@ function renderExam() {
     <div class="card today-card mt"><span class="eyebrow">Scoring rubric</span><h2>和文独訳の配点</h2><div class="today-list"><div class="today-row"><b>40</b><span>指定文法の実現</span><small>40%</small></div><div class="today-row"><b>25</b><span>活用・格・語尾</span><small>25%</small></div><div class="today-row"><b>20</b><span>語順</span><small>20%</small></div><div class="today-row"><b>15</b><span>語彙・綴り・大文字</span><small>15%</small></div></div></div>
   </div>`;
   if (examState.result) return renderExamResult();
+  if (examState.reviewTranslations) return renderExamTranslationReview();
   const set = examSets.find(s=>s.id===examState.id);
   const questions = set.ids.map(id=>allQuestions.find(q=>q.id===id));
   return `<div class="page"><div class="exam-bar"><div><span class="tiny">模擬試験 0${set.id}</span><strong>${set.title}</strong></div><div class="timer" id="exam-timer">${formatTime(examState.remaining)}</div><button class="button lime" id="submit-exam">答案を提出</button></div>
     <div>${questions.map((q,i)=>`<article class="card exam-question"><span class="eyebrow">問 ${i+1} · ${q.unitTitle} · ${q.tag}</span><h3>${q.prompt}</h3><p lang="${q.mode==="translate"?"ja":"de"}">${esc(q.source)}</p>${q.mode==="choice"?`<select class="answer-input" data-exam-answer="${q.id}"><option value="">選択してください</option>${q.options.map(x=>`<option>${esc(x)}</option>`).join("")}</select>`:`<textarea class="answer-area" data-exam-answer="${q.id}" lang="${q.mode==="de2jp"?"ja":"de"}" spellcheck="false"></textarea>`}</article>`).join("")}</div>
   </div>`;
 }
+function renderExamTranslationReview(){
+  const set=examSets.find(s=>s.id===examState.id), questions=set.ids.map(id=>allQuestions.find(q=>q.id===id));
+  const translations=questions.map((q,i)=>({q,no:i+1})).filter(x=>isTranslationQuestion(x.q));
+  const complete=translations.every(({q})=>examState.selfGrades[q.id]);
+  return `<div class="page">${pageHeader("自己採点", `模擬試験 0${set.id} 訳問題の確認`, "自分の答案と模範解答を比べて採点してください。")}
+    <div class="self-review-note card">「惜しい」と「不正解」は復習対象として集計されます。</div>
+    ${translations.map(({q,no})=>`<article class="card exam-question self-review-question"><span class="eyebrow">問 ${no} · ${modeLabel(q.mode)} · ${q.tag}</span><h3>${q.prompt}</h3><p class="review-source" lang="${q.mode==="translate"?"ja":"de"}">${esc(q.source)}</p><div class="answer-compare"><div><small>自分の答案</small><p>${esc(examState.answers[q.id]||"（未回答）")}</p></div><div><small>模範解答</small><p>${esc(q.answers[0])}</p></div></div><div class="self-grade-actions">${[["correct","正解"],["partial","惜しい"],["wrong","不正解"]].map(([grade,label])=>`<button class="button ${grade==="correct"?"lime":grade==="partial"?"secondary":"ghost"} ${examState.selfGrades[q.id]===grade?"selected-grade":""}" data-exam-self-grade="${grade}" data-question-id="${q.id}">${label}</button>`).join("")}</div></article>`).join("")}
+    <div class="exam-bar self-review-submit"><div><span class="tiny">自己採点</span><strong>${Object.keys(examState.selfGrades).length} / ${translations.length}問</strong></div><button class="button lime" id="finish-exam-grading" ${complete?"":"disabled"}>採点結果を見る →</button></div>
+  </div>`;
+}
 function renderExamResult() {
   const result = examState.result, set = examSets.find(s=>s.id===examState.id);
-  return `<div class="page">${pageHeader("Result", `模擬試験 0${set.id} 採点結果`, "完全一致だけでなく、主要な別解を登録したルールで採点しています。")}
+  return `<div class="page">${pageHeader("Result", `模擬試験 0${set.id} 採点結果`, "訳問題は自己採点、それ以外は登録された解答で採点しています。")}
     <section class="card exam-result"><div class="score-ring" style="--score:${result.score}%"><strong>${result.score}点</strong></div><h2 style="text-align:center">${result.score>=80?"合格圏です":"失点タグを復習しましょう"}</h2><p style="text-align:center;color:var(--muted)">正解 ${result.correct} / ${result.total}問 · 予想失点 ${100-result.score}点</p>${result.wrong.length?`<div class="today-list">${result.wrong.map(item=>`<div class="today-row"><b>${item.no}</b><span><strong>${item.tag}</strong><br><small>${esc(item.answer)}</small></span><small>−${item.loss}点</small></div>`).join("")}</div>`:"<div class='feedback'><strong>全問正解</strong>すばらしい答案です。</div>"}<div class="lesson-actions"><button class="button" id="review-exam">誤答を復習する</button><button class="button ghost" id="exit-exam">試験一覧へ</button></div></section>
   </div>`;
 }
@@ -503,7 +515,7 @@ function render() {
   const views = {home:renderHome,learn:renderLearn,practice:renderPractice,verbs:renderVerbs,vocab:renderVocab,vocabquiz:renderVocabQuiz,exam:renderExam,progress:renderProgress};
   main.innerHTML = (views[route()] || renderHome)();
   updateNav(); updateSidebar(); bindCommon();
-  if (examState && !examState.result && route()==="exam") startTimer();
+  if (examState && !examState.result && !examState.reviewTranslations && route()==="exam") startTimer();
   window.scrollTo({top:0, behavior:"smooth"});
 }
 
@@ -539,10 +551,26 @@ function checkPractice() {
   const q=practice.pool[practice.index], input=document.getElementById("practice-answer");
   const value=q.mode==="choice"?practice.selected:(input?.value||"");
   if(!value.trim()){toast("答案を入力してください");return;}
+  if(isTranslationQuestion(q)){
+    if(input)input.disabled=true;
+    const feedback=document.getElementById("practice-feedback");
+    feedback.innerHTML=`<div class="feedback self-check"><strong>模範解答</strong>${esc(q.explanation)}<code>${esc(q.answers[0])}</code><p>自分の答案と比べて選んでください。「惜しい」は復習対象として記録されます。</p><div class="self-grade-actions"><button class="button lime" data-self-grade="correct">正解</button><button class="button secondary" data-self-grade="partial">惜しい</button><button class="button ghost" data-self-grade="wrong">不正解</button></div></div>`;
+    const btn=document.getElementById("check-answer");btn.disabled=true;
+    document.querySelectorAll("[data-self-grade]").forEach(gradeBtn=>gradeBtn.addEventListener("click",()=>{
+      const grade=gradeBtn.dataset.selfGrade, correct=grade==="correct";
+      recordAnswer(q,correct);
+      document.querySelectorAll("[data-self-grade]").forEach(x=>x.disabled=true);
+      gradeBtn.classList.add("selected-grade");
+      feedback.querySelector(".self-check").insertAdjacentHTML("afterbegin",`<div class="self-grade-result">${grade==="correct"?"正解として記録しました":grade==="partial"?"惜しい：復習に追加しました":"不正解：復習に追加しました"}</div>`);
+      setPracticeNext(btn,correct);
+    }));
+    return;
+  }
   const correct=isCorrect(q,value); recordAnswer(q,correct);
   document.getElementById("practice-feedback").innerHTML=`<div class="feedback ${correct?"":"wrong"}"><strong>${correct?"正解です":"ここを修正しましょう"}</strong>${esc(q.explanation)}<code>${esc(q.answers[0])}</code></div>`;
-  const btn=document.getElementById("check-answer");btn.textContent=practice.index+1>=practice.pool.length?"最初から復習する ↻":"次の問題へ →";btn.onclick=()=>{if(practice.reviewOnly&&correct){practice.index=Math.min(practice.index,Math.max(0,progress.review.length-1));}else{practice.index=(practice.index+1)%practice.pool.length;}practice.selected="";render();};
+  setPracticeNext(document.getElementById("check-answer"),correct);
 }
+function setPracticeNext(btn,correct){btn.disabled=false;btn.textContent=practice.index+1>=practice.pool.length?"最初から復習する ↻":"次の問題へ →";btn.onclick=()=>{if(practice.reviewOnly&&correct){practice.index=Math.min(practice.index,Math.max(0,progress.review.length-1));}else{practice.index=(practice.index+1)%practice.pool.length;}practice.selected="";render();};}
 function recordAnswer(q, correct) {
   touchDay(); progress.answered++; progress.today++;
   const unit=progress.byUnit[q.unitId]||{answered:0,correct:0};unit.answered++;if(correct){progress.correct++;unit.correct++;progress.review=progress.review.filter(id=>id!==q.id);}else{progress.wrongTags[q.tag]=(progress.wrongTags[q.tag]||0)+1;if(!progress.review.includes(q.id))progress.review.push(q.id);}progress.byUnit[q.unitId]=unit;saveProgress();
@@ -580,15 +608,23 @@ function bindVocabQuiz(){
 }
 
 function bindExam(){
-  document.querySelectorAll("[data-start-exam]").forEach(el=>el.addEventListener("click",()=>{const id=Number(el.dataset.startExam),set=examSets.find(s=>s.id===id);examState={id,remaining:set.minutes*60,answers:{},result:null};render();}));
+  document.querySelectorAll("[data-start-exam]").forEach(el=>el.addEventListener("click",()=>{const id=Number(el.dataset.startExam),set=examSets.find(s=>s.id===id);examState={id,remaining:set.minutes*60,answers:{},selfGrades:{},reviewTranslations:false,result:null};render();}));
   document.getElementById("submit-exam")?.addEventListener("click",()=>submitExam(false));
+  document.querySelectorAll("[data-exam-self-grade]").forEach(el=>el.addEventListener("click",()=>{examState.selfGrades[el.dataset.questionId]=el.dataset.examSelfGrade;render();}));
+  document.getElementById("finish-exam-grading")?.addEventListener("click",()=>finishExam(examState.autoSubmitted));
   document.getElementById("exit-exam")?.addEventListener("click",()=>{examState=null;render();});
   document.getElementById("review-exam")?.addEventListener("click",()=>{const wrong=examState.result.wrong.map(x=>x.id);wrong.forEach(id=>{if(!progress.review.includes(id))progress.review.push(id)});saveProgress();examState=null;go("practice");startReview();});
 }
 function startTimer(){examTimer=setInterval(()=>{if(!examState||examState.result)return;examState.remaining--;const el=document.getElementById("exam-timer");if(el)el.textContent=formatTime(Math.max(0,examState.remaining));if(examState.remaining<=0)submitExam(true);},1000);}
 function submitExam(auto){
-  if(!examState)return;clearInterval(examTimer);const set=examSets.find(s=>s.id===examState.id),qs=set.ids.map(id=>allQuestions.find(q=>q.id===id));let correct=0;const wrong=[];const per=Math.round(100/qs.length);
-  qs.forEach((q,i)=>{const el=document.querySelector(`[data-exam-answer="${q.id}"]`),value=el?.value||"";if(isCorrect(q,value)){correct++;}else{wrong.push({id:q.id,no:i+1,tag:q.tag,answer:q.answers[0],loss:per});progress.wrongTags[q.tag]=(progress.wrongTags[q.tag]||0)+1;if(!progress.review.includes(q.id))progress.review.push(q.id);}});
+  if(!examState)return;clearInterval(examTimer);const set=examSets.find(s=>s.id===examState.id),qs=set.ids.map(id=>allQuestions.find(q=>q.id===id));
+  qs.forEach(q=>{const el=document.querySelector(`[data-exam-answer="${q.id}"]`);examState.answers[q.id]=el?.value||"";});
+  if(qs.some(isTranslationQuestion)){examState.reviewTranslations=true;examState.autoSubmitted=auto;render();if(auto)toast("制限時間です。訳問題を自己採点してください");return;}
+  finishExam(auto);
+}
+function finishExam(auto){
+  if(!examState)return;const set=examSets.find(s=>s.id===examState.id),qs=set.ids.map(id=>allQuestions.find(q=>q.id===id));let correct=0;const wrong=[];const per=Math.round(100/qs.length);
+  qs.forEach((q,i)=>{const value=examState.answers[q.id]||"",passed=isTranslationQuestion(q)?examState.selfGrades[q.id]==="correct":isCorrect(q,value);if(passed){correct++;}else{wrong.push({id:q.id,no:i+1,tag:q.tag,answer:q.answers[0],loss:per});progress.wrongTags[q.tag]=(progress.wrongTags[q.tag]||0)+1;if(!progress.review.includes(q.id))progress.review.push(q.id);}});
   const score=Math.round(correct/qs.length*100);examState.result={score,correct,total:qs.length,wrong};progress.exams.push({set:set.id,score,date:new Date().toISOString()});saveProgress();if(auto)toast("制限時間になったため採点しました");render();
 }
 function bindProgress(){
