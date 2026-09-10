@@ -44,9 +44,10 @@ a { color: inherit; text-decoration: none; }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark {
   width: 42px; height: 42px; display: grid; place-items: center; flex: 0 0 42px;
-  border: 1px solid rgba(255,255,255,.22); border-radius: 50%; color: var(--forest);
-  background: var(--lime); font: 700 22px/1 var(--serif);
+  overflow: hidden; border: 1px solid rgba(255,255,255,.22); border-radius: 22%;
+  background: #07522e;
 }
+.brand-mark img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .brand strong { display: block; font: 700 21px/1.1 var(--serif); letter-spacing: .01em; }
 .brand small { color: rgba(255,255,255,.58); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
 .side-nav { display: grid; gap: 5px; margin-top: 50px; }
